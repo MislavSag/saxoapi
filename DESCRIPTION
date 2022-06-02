@@ -1,0 +1,23 @@
+Package: saxoapi
+Type: Package
+Title: Interact with Saxo API
+Version: 0.1.0
+Author: Mislav Sagovac
+Maintainer: The package maintainer <mislav.sagoavac@contentio.biz>
+Description: Interact with Saxo Bank Open API. Make Oauth 2.0 authentification,
+    wrap most important API endpoints (account info, orders etc.).
+License: GPL-3
+Encoding: UTF-8
+RoxygenNote: 7.2.0
+Imports:
+    R6,
+    checkmate,
+    httr2,
+    lgr,
+    backports,
+    jsonlite,
+    utils
+Suggests: 
+    rmarkdown,
+    knitr
+VignetteBuilder: knitr
