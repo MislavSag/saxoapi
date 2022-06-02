@@ -16,6 +16,8 @@ SaxoAuthService = R6::R6Class(
     #' When initialized, config is loaded either directly from app_config
     #' argument or from "app_config.json".
     #'
+    #' @param app_config Sax APP object.
+    #'
     #' @return A new `SaxoAuthService` object.
     initialize = function(app_config = NULL) {
 
