@@ -10,6 +10,13 @@ The package provides following features:
 
 In the future, I plan to add additional API endpoints:
 
+# Prerequisit
+
+To use Ouath 2.0 Code Grant Flow you should:
+1. save APP OBJECT in app_config.json file or
+2. Provide APP OBJECT json file as argument to `login` method.
+
+
 Usage:
 ```
 library(saxoapi)
@@ -41,3 +48,5 @@ order_id <- saxo$place_order(body_params)
 saxo$get_orders_all()
 saxo$get_positions(client$ClientKey)
 ```
+
+
