@@ -16,7 +16,10 @@ Imports:
     lgr,
     backports,
     jsonlite,
-    utils
+    utils,
+    httpuv,
+    withr,
+    data.table
 Suggests: 
     rmarkdown,
     knitr

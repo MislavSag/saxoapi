@@ -5,6 +5,9 @@
 #' @import backports
 #' @import httr2
 #' @import jsonlite
+#' @import httpuv
+#' @import withr
+#' @import data.table
 "_PACKAGE"
 
 
