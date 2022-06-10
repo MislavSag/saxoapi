@@ -28,16 +28,19 @@ OPerates with Saxo Open API.
 \item \href{#method-SaxoAuthService-login}{\code{SaxoAuthService$login()}}
 \item \href{#method-SaxoAuthService-my_oauth_flow_auth_code_listen}{\code{SaxoAuthService$my_oauth_flow_auth_code_listen()}}
 \item \href{#method-SaxoAuthService-exercise_authorization}{\code{SaxoAuthService$exercise_authorization()}}
+\item \href{#method-SaxoAuthService-get_refreshed_token}{\code{SaxoAuthService$get_refreshed_token()}}
 \item \href{#method-SaxoAuthService-get_base_request}{\code{SaxoAuthService$get_base_request()}}
 \item \href{#method-SaxoAuthService-request_get_saxo}{\code{SaxoAuthService$request_get_saxo()}}
 \item \href{#method-SaxoAuthService-get_user}{\code{SaxoAuthService$get_user()}}
 \item \href{#method-SaxoAuthService-get_client}{\code{SaxoAuthService$get_client()}}
 \item \href{#method-SaxoAuthService-get_accounts}{\code{SaxoAuthService$get_accounts()}}
-\item \href{#method-SaxoAuthService-get_account_balance}{\code{SaxoAuthService$get_account_balance()}}
+\item \href{#method-SaxoAuthService-get_balances_user}{\code{SaxoAuthService$get_balances_user()}}
+\item \href{#method-SaxoAuthService-get_balance_account}{\code{SaxoAuthService$get_balance_account()}}
 \item \href{#method-SaxoAuthService-get_instruments}{\code{SaxoAuthService$get_instruments()}}
 \item \href{#method-SaxoAuthService-place_order}{\code{SaxoAuthService$place_order()}}
 \item \href{#method-SaxoAuthService-get_orders_all}{\code{SaxoAuthService$get_orders_all()}}
 \item \href{#method-SaxoAuthService-get_positions}{\code{SaxoAuthService$get_positions()}}
+\item \href{#method-SaxoAuthService-get_net_positions_user}{\code{SaxoAuthService$get_net_positions_user()}}
 \item \href{#method-SaxoAuthService-clone}{\code{SaxoAuthService$clone()}}
 }
 }
@@ -83,7 +86,12 @@ A new `SaxoAuthService` object.
 \subsection{Method \code{login()}}{
 Login to Sax Open API
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SaxoAuthService$login(redirect_url = NULL, redirect_port = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SaxoAuthService$login(
+  redirect_url = NULL,
+  redirect_port = NULL,
+  user_name = NULL,
+  password = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -92,6 +100,12 @@ Login to Sax Open API
 \item{\code{redirect_url}}{Redirect url}
 
 \item{\code{redirect_port}}{Redirect port}
+
+\item{\code{user_name}}{User name for authentification in the browser.
+NULL if you want to authenticate manually.}
+
+\item{\code{password}}{Password for authentification in the browser.
+NULL if you want to authenticate manually.}
 }
 \if{html}{\out{</div>}}
 }
@@ -144,6 +158,26 @@ Get token.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{auth_code}}{Authorization code.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Saxo Open API token.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SaxoAuthService-get_refreshed_token"></a>}}
+\if{latex}{\out{\hypertarget{method-SaxoAuthService-get_refreshed_token}{}}}
+\subsection{Method \code{get_refreshed_token()}}{
+Refresh token endpoint https://www.developer.saxo/openapi/learn/oauth-authorization-code-grant
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SaxoAuthService$get_refreshed_token(refresh_token)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{refresh_token}}{Refresh token.}
 }
 \if{html}{\out{</div>}}
 }
@@ -231,12 +265,26 @@ Accounts data.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-SaxoAuthService-get_account_balance"></a>}}
-\if{latex}{\out{\hypertarget{method-SaxoAuthService-get_account_balance}{}}}
-\subsection{Method \code{get_account_balance()}}{
+\if{html}{\out{<a id="method-SaxoAuthService-get_balances_user"></a>}}
+\if{latex}{\out{\hypertarget{method-SaxoAuthService-get_balances_user}{}}}
+\subsection{Method \code{get_balances_user()}}{
+Get balance data for logged-in client
+   More info on <https://www.developer.saxo/openapi/referencedocs/port/v1/balances>.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SaxoAuthService$get_balances_user()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Positions data.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SaxoAuthService-get_balance_account"></a>}}
+\if{latex}{\out{\hypertarget{method-SaxoAuthService-get_balance_account}{}}}
+\subsection{Method \code{get_balance_account()}}{
 Account balance endpoint <https://www.developer.saxo/openapi/referencedocs/port/v1/balances>
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SaxoAuthService$get_account_balance(account_key, client_key)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SaxoAuthService$get_balance_account(account_key, client_key)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -350,6 +398,57 @@ PositionBase, PositionIdOnly, PositionView.}
 }
 \subsection{Returns}{
 Positions data.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SaxoAuthService-get_net_positions_user"></a>}}
+\if{latex}{\out{\hypertarget{method-SaxoAuthService-get_net_positions_user}{}}}
+\subsection{Method \code{get_net_positions_user()}}{
+Get net positions for the current user's client.
+   More info on <https://www.developer.saxo/openapi/referencedocs/port/v1/netpositions>.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SaxoAuthService$get_net_positions_user(
+  top = NULL,
+  skip = NULL,
+  field_group = "DisplayAndFormat"
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{top}}{top.}
+
+\item{\code{skip}}{skip.}
+
+\item{\code{field_group}}{look at <https://www.developer.saxo/openapi/referencedocs/port/v1/netpositions>}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Positions data.
+#' @description Get positions for a client, account group, account or a position.
+#'    More info on <https://www.developer.saxo/openapi/referencedocs/port/v1/positions>.
+#'
+#' @param client_key client key.
+#' @param field_group FieldGroups: DisplayAndFormat, ExchangeInfo, Greeks,
+#'    PositionBase, PositionIdOnly, PositionView.
+#'
+#' @return Positions data.
+get_positions = function(client_key = NULL, field_group = NULL) {
+
+  # make get request
+  resp <- self$base_request %>%
+    req_url_path_append("port/v1/positions") %>%
+    req_url_query(ClientKey = client_key, FieldGroups = field_group) %>%
+    req_perform()
+
+  if (resp_status(resp) == 200) {
+    resp <- resp_body_json(resp)
+  }
+
+  return(resp)
+}
 }
 }
 \if{html}{\out{<hr>}}

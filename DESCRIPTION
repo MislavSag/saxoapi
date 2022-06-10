@@ -19,7 +19,9 @@ Imports:
     utils,
     httpuv,
     withr,
-    data.table
+    data.table,
+    callr,
+    chromote
 Suggests: 
     rmarkdown,
     knitr

@@ -24,6 +24,7 @@ SaxoAuthService = R6::R6Class(
     #' @field base_request Base httr2 request object
     base_request = NULL,
 
+
     #' @description Create a new AuthService object with provided AppConfig.
     #' When initialized, config is loaded either directly from app_config
     #' argument or from "app_config.json".
@@ -60,9 +61,25 @@ SaxoAuthService = R6::R6Class(
     #'
     #' @param redirect_url Redirect url
     #' @param redirect_port Redirect port
+    #' @param user_name User name for authentification in the browser.
+    #'    NULL if you want to authenticate manually.
+    #' @param password Password for authentification in the browser.
+    #'    NULL if you want to authenticate manually.
     #'
     #' @return Object that can get token.
-    login = function(redirect_url = NULL, redirect_port = NULL) {
+    login = function(redirect_url = NULL, redirect_port = NULL,
+                     user_name = NULL, password = NULL) {
+
+      ############ TEST ##########
+      # library(jsonlite)
+      # library(httr2)
+      # library(chromote)
+      # library(callr)
+      # self = list(
+      #   auth_redirect_url = "http://localhost:4321/redirect",
+      #   app_config = fromJSON("app_config.json")
+      # )
+      ############ TEST ##########
 
       lg$info(
         paste0("logging in to app: ",  self$app_config$AppName,
@@ -106,9 +123,34 @@ SaxoAuthService = R6::R6Class(
                                            state = state
       )
 
-      # start browser
-      lg$info(paste0("browser will be opened with url: ", auth_url))
-      utils::browseURL(auth_url)
+      # browser authentification
+      if (is.null(user_name) | is.null(password)) {
+        # start browser
+        lg$info(paste0("browser will be opened with url: ", auth_url))
+        utils::browseURL(auth_url)
+      } else {
+        rp <- r_bg(
+          function(auth_url, user_name, password) {
+
+            # start headless chrome session
+            library(chromote)
+            b <- ChromoteSession$new()
+            b$Page$navigate(auth_url)
+            Sys.sleep(3L)
+            eval_ <- paste0('document.querySelector("#field_userid").value = "', user_name, '"')
+            x <- b$Runtime$evaluate(eval_)
+            Sys.sleep(1L)
+            eval_ <- paste0('document.querySelector("#field_password").value = "', password, '"')
+            x <- b$Runtime$evaluate(eval_)
+            Sys.sleep(1L)
+            x <- b$Runtime$evaluate('document.querySelector("#button_login").click()')
+            Sys.sleep(1L)
+            x <- b$Runtime$evaluate('document.querySelector("#page > div.container > div.form > div.validation-summary-errors > span").innerText')
+            list(auth_url, user_name, password, eval_)
+          },
+          args = list(auth_url, user_name, password)
+        )
+      }
 
       # listen redirect url
       result <- self$my_oauth_flow_auth_code_listen()
@@ -122,6 +164,7 @@ SaxoAuthService = R6::R6Class(
 
       return(self$token_data)
     },
+
 
     #' @description Starts an webserver that listens for the response from the resource server.
     #'
@@ -201,6 +244,40 @@ SaxoAuthService = R6::R6Class(
       return(access_tokens)
     },
 
+    #' @description Refresh token endpoint https://www.developer.saxo/openapi/learn/oauth-authorization-code-grant
+    #'
+    #' @param refresh_token Refresh token.
+    #'
+    #' @return Saxo Open API token.
+    get_refreshed_token = function(refresh_token) {
+
+      # make POST request
+      resp <- request(self$app_config$TokenEndpoint) %>%
+        req_body_form(
+          grant_type = "refresh_token",
+          refresh_token = refresh_token,
+          redirect_uri = self$auth_redirect_url,
+          client_id = self$app_config$AppKey,
+          client_secret = self$app_config$AppSecret
+        ) %>%
+        req_headers(
+          "Host" = "sim.logonvalidation.net"
+          # "Authorization" = paste0("Basic ", ) # DELTE LATER IF NOT USED
+        ) %>%
+        req_method("POST") %>%
+        req_perform()
+      access_tokens <- resp %>% resp_body_json()
+
+      # check for errors
+      if (resp_status(resp) == 201) {
+        lg$info("access & refresh token created/refreshed successfully")
+      } else {
+        stop("error occurred while attempting to retrieve token")
+      }
+
+      return(access_tokens)
+    },
+
     #' @description Check token and prepare request
     #'
     #' @param tokens Saxo Open API tokens.
@@ -257,13 +334,35 @@ SaxoAuthService = R6::R6Class(
       self$request_get_saxo("port/v1/accounts/me")
     },
 
+
+    # BALANCES ----------------------------------------------------------------
+    # Url: https://www.developer.saxo/openapi/referencedocs/port/v1/balances
+
+    #' @description Get balance data for logged-in client
+    #'    More info on <https://www.developer.saxo/openapi/referencedocs/port/v1/balances>.
+    #'
+    #' @return Positions data.
+    get_balances_user = function() {
+
+      # make get request
+      resp <- self$base_request %>%
+        req_url_path_append("port/v1/balances/me") %>%
+        req_perform()
+
+      if (resp_status(resp) == 200) {
+        resp <- resp_body_json(resp)
+      }
+
+      return(resp)
+    },
+
     #' @description Account balance endpoint <https://www.developer.saxo/openapi/referencedocs/port/v1/balances>
     #'
     #' @param account_key Account key.
     #' @param client_key client key.
     #'
     #' @return Account Balance data.
-    get_account_balance = function(account_key, client_key) {
+    get_balance_account = function(account_key, client_key) {
 
       # make get request
       resp <- self$base_request %>%
@@ -388,7 +487,55 @@ SaxoAuthService = R6::R6Class(
       }
 
       return(resp)
+    },
+
+    #' @description Get net positions for the current user's client.
+    #'    More info on <https://www.developer.saxo/openapi/referencedocs/port/v1/netpositions>.
+    #'
+    #' @param top top.
+    #' @param skip skip.
+    #' @param field_group look at <https://www.developer.saxo/openapi/referencedocs/port/v1/netpositions>
+    #'
+    #' @return Positions data.
+    get_net_positions_user = function(top = NULL, skip = NULL,
+                                      field_group = "DisplayAndFormat") {
+
+      # make get request
+      resp <- self$base_request %>%
+        req_url_path_append("port/v1/netpositions/me") %>%
+        req_url_query(top = top, sip = skip, FieldGroups = field_group) %>%
+        req_perform()
+
+      if (resp_status(resp) == 200) {
+        resp <- resp_body_json(resp)
+      }
+
+      return(resp)
     }
+
+
+    #' #' @description Get positions for a client, account group, account or a position.
+    #' #'    More info on <https://www.developer.saxo/openapi/referencedocs/port/v1/positions>.
+    #' #'
+    #' #' @param client_key client key.
+    #' #' @param field_group FieldGroups: DisplayAndFormat, ExchangeInfo, Greeks,
+    #' #'    PositionBase, PositionIdOnly, PositionView.
+    #' #'
+    #' #' @return Positions data.
+    #' get_positions = function(client_key = NULL, field_group = NULL) {
+    #'
+    #'   # make get request
+    #'   resp <- self$base_request %>%
+    #'     req_url_path_append("port/v1/positions") %>%
+    #'     req_url_query(ClientKey = client_key, FieldGroups = field_group) %>%
+    #'     req_perform()
+    #'
+    #'   if (resp_status(resp) == 200) {
+    #'     resp <- resp_body_json(resp)
+    #'   }
+    #'
+    #'   return(resp)
+    #' }
 
   )
 )

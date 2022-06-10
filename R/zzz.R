@@ -8,6 +8,8 @@
 #' @import httpuv
 #' @import withr
 #' @import data.table
+#' @import callr
+#' @import chromote
 "_PACKAGE"
 
 
